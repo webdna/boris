@@ -1,0 +1,38 @@
+{#
+/**
+ * Boris plugin for Craft CMS
+ *
+ * Boris Settings.twig
+ *
+ * @author    Nathaniel Hammond - @nfourtythree - webdna
+ * @copyright Copyright (c) 2017 Nathaniel Hammond - @nfourtythree - webdna
+ * @link      https://webdna.co.uk
+ * @package   Boris
+ * @since     1.0.0
+ */
+#}
+
+{% import "_includes/forms" as forms %}
+
+{{ forms.textField( {
+    label: 'Plugin Name',
+    instructions: 'If you would like to rename the plugin, this is the place to do it',
+    id: 'name',
+    name: 'name',
+    value: settings[ 'name' ]
+  } )
+}}
+
+{{ forms.elementSelectField({
+    label: 'Invincible Elements',
+    id: 'elementIds',
+    name: 'elementIds',
+    elementType: craft.elements.getElementType( 'Entry' ),
+    elements: elements,
+    criteria: { 'kind':[], 'localeEnabled':null, 'locale': 'en_gb' },
+    sourceElementId: 1,
+    jsClass: 'Craft.BaseElementSelectInput',
+    addButtonLabel: 'Select Entries',
+    limit: null,
+    sources: []
+}) }}
