@@ -1,6 +1,6 @@
-![Boris](/resources/icon.png)
-
 # Boris plugin for Craft CMS
+
+![Boris](/resources/icon.png)
 
 Make your entries invincible!
 
