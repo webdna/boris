@@ -21,6 +21,11 @@ Ever wanted to stop users from deleting an entry? Now you can! Boris will allow 
 
 Simply head over to the plugin settings page and select the entries you wish to protect
 
+#### Boris currently supports protecting the following element types
+
+- Entries
+- Categories
+
 ## Boris Roadmap
 
 - Make other element types invincible

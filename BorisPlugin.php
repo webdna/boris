@@ -34,12 +34,11 @@ class BorisPlugin extends BasePlugin
 
       craft()->on( 'entries.onBeforeDeleteEntry', function( Event $event ) {
 
-        $settings = $this->getSettings();
-        $settings[ 'elementIds' ] = unserialize( $settings[ 'elementIds' ] );
+        $settings = craft()->boris->unprepSettings( $this->getSettings() );
 
-        if ( $event->params[ 'entry' ] and ( $settings[ 'elementIds' ] ) and count( $settings[ 'elementIds' ] ) ) {
+        if ( $event->params[ 'entry' ] and ( $settings[ 'entryIds' ] ) and !empty( $settings[ 'entryIds' ] ) ) {
 
-          $titles = craft()->boris->invincible( array( $event->params[ 'entry' ]->id ), $settings[ 'elementIds' ] );
+          $titles = craft()->boris->invincible( array( $event->params[ 'entry' ]->id ), $settings[ 'entryIds' ] );
 
           if ( count( $titles ) ) {
             craft()->boris->showInvincibleNotice( $titles );
@@ -50,18 +49,42 @@ class BorisPlugin extends BasePlugin
 
       } );
 
+      craft()->on( 'categories.onBeforeDeleteCategory', function( Event $event ) {
+
+        $settings = craft()->boris->unprepSettings( $this->getSettings() );
+
+        if ( $event->params[ 'category' ] and ( $settings[ 'categoryIds' ] ) and count( $settings[ 'categoryIds' ] ) ) {
+
+          $titles = craft()->boris->invincible( array( $event->params[ 'category' ]->id ), $settings[ 'categoryIds' ] );
+
+          if ( count( $titles ) ) {
+            craft()->boris->showInvincibleNotice( $titles );
+            Craft::app()->getRequest()->redirect( UrlHelper::getCpUrl( 'categories' ) );
+          }
+
+        }
+
+      } );
+
       craft()->on( 'elements.onBeforePerformAction', function( Event $event ) {
 
-        $settings = $this->getSettings();
-        $settings[ 'elementIds' ] = unserialize( $settings[ 'elementIds' ] );
+        $settings = craft()->boris->unprepSettings( $this->getSettings() );
 
         if ( $event->params[ 'action' ]->classHandle == 'Delete' ) {
 
-          $titles = craft()->boris->invincible( $event->params[ 'criteria' ]->ids(), $settings[ 'elementIds' ] );
+          $titles = craft()->boris->invincible( $event->params[ 'criteria' ]->ids(), $settings[ 'entryIds' ] );
 
           if ( count( $titles ) ) {
             // TODO: Figure out how to pass back notice on performAction
             // craft()->boris->showInvincibleNotice( $titles );
+            $event->performAction = false;
+          }
+
+          $titles = craft()->boris->invincible( $event->params[ 'criteria' ]->ids(), $settings[ 'categoryIds' ] );
+
+          if ( count( $titles ) ) {
+            // TODO: Figure out how to pass back notice on performAction
+            craft()->boris->showInvincibleNotice( $titles );
             $event->performAction = false;
           }
         }
@@ -213,7 +236,8 @@ class BorisPlugin extends BasePlugin
     {
       return array(
         'name' => array( AttributeType::String, 'label' => 'Plugin Name', 'default' => 'Boris' ),
-        'elementIds' => array( AttributeType::Mixed, 'label' => 'Invincible Elemtns', 'default' => serialize( array() ) ),
+        'entryIds' => array( AttributeType::Mixed, 'label' => 'Invincible Entries', 'default' => serialize( array() ) ),
+        'categoryIds' => array( AttributeType::Mixed, 'label' => 'Invincible Categories', 'default' => serialize( array() ) ),
       );
     }
 
@@ -224,66 +248,7 @@ class BorisPlugin extends BasePlugin
      */
     public function getSettingsHtml()
     {
-
-//       $fieldType = $field->fieldType;
-//       $settings = $fieldType->getSettings();
-//       $criteria = null;
-//
-//       if ( !( $criteria instanceof ElementCriteriaModel ) )
-// {
-//     $criteria = craft()->elements->getCriteria( $fieldType->elementType->getClassHandle() );
-//     $criteria->id = false;
-// }
-//
-//        $criteria->status = null;
-//        $criteria->localeEnabled = null;
-//
-//        $selectionCriteria = array();
-//        $selectionCriteria['localeEnabled'] = null;
-//
-//        if ( craft()->isLocalized() ) {
-//          $targetLocale = $settings->targetLocale;
-//        } else {
-//          $targetLocale = craft()->getLanguage();
-//        }
-//        $selectionCriteria['locale'] = $targetLocale;
-//
-//        return array(
-//             'jsClass'            => $this->getInputJsClass( $fieldType->elementType->classHandle ),
-//             'elementType'        => new ElementTypeVariable( $fieldType->elementType ),
-//             'id'                 => craft()->templates->formatInputId( $field->handle ),
-//             'fieldId'            => $fieldType->model->id,
-//             'storageKey'         => 'field.' . $fieldType->model->id,
-//             'name'               => $field->handle,
-//             'elements'           => $criteria,
-//             'sources'            => ( $this->getAllowMultipleSources( $fieldType->classHandle ) ) ? $settings->sources : array( $settings->source ),
-//             'criteria'           => $selectionCriteria,
-//             'sourceElementId'    => ( isset($fieldType->element->id ) ? $fieldType->element->id : null),
-//             'limit'              => null,
-//             'viewMode'           => $settings->viewMode,
-//             'selectionLabel'     => ($settings->selectionLabel ? Craft::t($settings->selectionLabel) : Craft::t('Add {type}', array(
-//                   'type' => StringHelper::toLowerCase( $fieldType->elementType->classHandle )
-//             ) ) )
-//        );
-
-
-      $settings = $this->getSettings();
-      $settings[ 'elementIds' ] = unserialize( $settings[ 'elementIds' ] );
-
-      $elements = array();
-      if ( $settings[ 'elementIds'] and count( $settings[ 'elementIds' ] ) ) {
-        foreach ( $settings[ 'elementIds' ] as $elementId ) {
-          $element = craft()->elements->getElementById( $elementId );
-          if ( $element ) {
-            $elements[] = $element;
-          }
-        }
-      }
-
-       return craft()->templates->render( 'boris/settings', array(
-           'settings' => $this->getSettings(),
-           'elements' => $elements,
-       ) );
+       return craft()->templates->render( 'boris/settings', craft()->boris->getTemplateVars( $this->getSettings() ) );
     }
 
     /**
@@ -296,10 +261,7 @@ class BorisPlugin extends BasePlugin
      */
     public function prepSettings( $settings )
     {
-      // Modify $settings here...
-      $settings[ 'elementIds' ] = serialize( $settings[ 'elementIds' ] );
-
-      return $settings;
+      return craft()->boris->prepSettings( $settings );
     }
 
 }

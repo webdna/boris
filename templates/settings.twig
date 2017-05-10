@@ -24,15 +24,29 @@
 }}
 
 {{ forms.elementSelectField({
-    label: 'Invincible Elements',
-    id: 'elementIds',
-    name: 'elementIds',
+    label: 'Invincible Entries',
+    id: 'entryIds',
+    name: 'entryIds',
     elementType: craft.elements.getElementType( 'Entry' ),
-    elements: elements,
-    criteria: { 'kind':[], 'localeEnabled':null, 'locale': 'en_gb' },
+    elements: entries,
+    criteria: { 'kind': [], 'localeEnabled': null },
     sourceElementId: 1,
     jsClass: 'Craft.BaseElementSelectInput',
     addButtonLabel: 'Select Entries',
+    limit: null,
+    sources: []
+}) }}
+
+{{ forms.elementSelectField({
+    label: 'Invincible Categories',
+    id: 'categoryIds',
+    name: 'categoryIds',
+    elementType: craft.elements.getElementType( 'Category' ),
+    elements: categories,
+    criteria: { 'kind': [], 'localeEnabled': null },
+    sourceElementId: 1,
+    jsClass: 'Craft.CategorySelectInput',
+    addButtonLabel: 'Select Categories',
     limit: null,
     sources: []
 }) }}
