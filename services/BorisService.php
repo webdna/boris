@@ -32,15 +32,17 @@ class BorisService extends BaseApplicationComponent
 
     $invincibleTitles = array();
 
-    foreach ( $ids as $id ) {
+    if ( $invincibleIds and !empty( $invincibleIds ) ) {
+      foreach ( $ids as $id ) {
 
-      if ( in_array( $id, $invincibleIds ) ) {
-        $element = craft()->elements->getElementById( $id );
-        if ( $element ) {
-          $invincibleTitles[] = $element->title;
+        if ( in_array( $id, $invincibleIds ) ) {
+          $element = craft()->elements->getElementById( $id );
+          if ( $element ) {
+            $invincibleTitles[] = $element->title;
+          }
         }
-      }
 
+      }
     }
 
     return $invincibleTitles;
